@@ -3,20 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rinkeby</title>
+    <title>Rinkeby Terminal</title>
     <link rel="icon" href="rinkeby.png" type="image/icon type">
     <style>
         body {
             background-color: #000;
-            color: #fff;
+            color: #00FF00;
+            font-family: 'Courier New', monospace;
             display: flex;
             align-items: center;
             justify-content: center;
             height: 100vh;
             margin: 0;
+            padding: 0;
+        }
+        #cli-container {
+            width: 80%;
+            max-width: 900px;
+            text-align: left;
+        }
+        pre {
+            font-size: 18px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+        #command-line {
+            display: flex;
+            align-items: center;
+            margin-top: 20px;
+        }
+        input {
+            background: transparent;
+            border: none;
+            color: #00FF00;
+            font-size: 16px;
+            width: 100%;
+            padding: 5px;
+            margin-left: 10px;
+            caret-color: #00FF00; /* Blinking cursor color */
+        }
+        input:focus {
+            outline: none;
+        }
+        #output {
+            margin-top: 10px;
+            color: #00FF00;
         }
     </style>
 </head>
 <body>
+    <div id="cli-container">
+        <pre id="ascii-art">
+**************************************************
+*                                                *
+*                  (511) 364-0721                *
+*    Copyright Control Stargraph Systems, Inc.   *
+*                    2022-2023                   *
+* Accessed software also protected by copyright. *
+*                                                *
+**************************************************
+(C) Copyright 2022-2023, Stargraph Computer Systems
+System:      Rinkeby Terminal
+Location:    <span id="location">Loading location...</span>
+Rinkeby Terminal Version 1.0
+        </pre>
+        <div id="command-line">
+            <span>$ </span><input type="text" id="command-input" autofocus placeholder="Type a command..." />
+        </div>
+        <div id="output"></div>
+    </div>
+
+    <script>
+        // Function to fetch user's location based on IP address
+        async function fetchLocation() {
+            try {
+                const response = await fetch('https://ipinfo.io?token=YOUR_API_KEY'); // Get location data
+                const data = await response.json();
+                document.getElementById('location').innerText = data.city + ', ' + data.region + ', ' + data.country;
+            } catch (error) {
+                document.getElementById('location').innerText = 'Unable to fetch location';
+            }
+        }
+
+        // Function to handle user input and execute commands
+        function handleCommand(command) {
+            const output = document.getElementById('output');
+            output.innerHTML = '';  // Clear previous output
+
+            switch (command.trim().toLowerCase()) {
+                case '/radio':
+                    window.location.href = '/radio';  // Redirect to radio page
+                    break;
+                case '/home':
+                    window.location.href = '/';  // Redirect to homepage
+                    break;
+                // Add more commands here as needed
+                default:
+                    output.innerHTML = 'Command not found. Type /help for a list of commands.';
+                    break;
+            }
+        }
+
+        // Event listener for when user presses 'Enter'
+        document.getElementById('command-input').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                const command = event.target.value;
+                handleCommand(command);
+                event.target.value = '';  // Clear input after command is entered
+            }
+        });
+
+        // Fetch the user's location on page load
+        fetchLocation();
+    </script>
 </body>
 </html>
