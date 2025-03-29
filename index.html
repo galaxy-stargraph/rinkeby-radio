@@ -40,7 +40,7 @@
             width: 100%;
             padding: 5px;
             margin-left: 10px;
-            caret-color: transparent; /* Hide the default caret */
+            caret-color: transparent; /* Hide default caret */
             position: relative;
             z-index: 1;
         }
@@ -51,10 +51,10 @@
             content: '';
             position: absolute;
             background-color: #00FF00;
-            width: 10px; /* Set the width of the block */
-            height: 20px; /* Set the height of the block */
+            width: 10px; /* Block width */
+            height: 20px; /* Block height */
             left: 0;
-            top: 5px; /* Adjust if necessary */
+            top: 5px; /* Adjust if needed */
             z-index: 2;
         }
         #output {
@@ -75,8 +75,8 @@
 *                                                *
 **************************************************
 (C) Copyright 2022-2023, Stargraph Computer Systems
-System:      Rinkeby Terminal
-Location:    [User Location Here] 
+System:      Rinkeby Terminal 
+Location:    Loading location...
 Rinkeby Terminal Version 1.0
         </pre>
         <div id="command-line">
@@ -84,35 +84,39 @@ Rinkeby Terminal Version 1.0
         </div>
         <div id="output"></div>
     </div>
-    
+
     <script>
-        // Fetch the user's location from IP API
-        fetch('https://ipinfo.io/json?token=2a099d22248b97') // Replace with your token if necessary
-        .then(response => response.json())
-        .then(data => {
-            const location = data.city + ", " + data.region + ", " + data.country;
-            document.querySelector("#ascii-art").innerHTML = document.querySelector("#ascii-art").innerHTML.replace('[User Location Here]', location);
-        });
+        // Fetch the user's IP and location using ipinfo.io
+        fetch('https://ipinfo.io?token=2a099d22248b97')
+            .then(response => response.json())
+            .then(data => {
+                const locationElement = document.querySelector('pre');
+                const location = data.city + ', ' + data.region + ', ' + data.country;
+                locationElement.innerHTML = locationElement.innerHTML.replace('Loading location...', location);
+            })
+            .catch(error => console.error('Error fetching location:', error));
 
-        // Handle command input and redirection
-        const inputField = document.querySelector("#command-input");
-        const outputDiv = document.querySelector("#output");
-        
-        inputField.addEventListener("keydown", function(event) {
-            if (event.key === "Enter") {
-                const command = inputField.value.trim().toLowerCase();
-
-                if (command === "/radio") {
-                    window.location.href = "/radio";
-                } else if (command === "/about") {
-                    window.location.href = "/about";
-                } else {
-                    outputDiv.innerHTML = `Command not recognized: ${command}`;
-                }
-
-                inputField.value = ""; // Clear the input field
+        // Handle command input
+        const inputField = document.getElementById('command-input');
+        inputField.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                const command = inputField.value.trim();
+                processCommand(command);
+                inputField.value = ''; // Clear the input field
             }
         });
+
+        function processCommand(command) {
+            const outputDiv = document.getElementById('output');
+            const lowerCommand = command.toLowerCase();
+
+            if (lowerCommand === '/radio') {
+                outputDiv.innerHTML = 'Redirecting to radio page... <a href="/radio">Click here if not redirected automatically.</a>';
+                window.location.href = '/radio';
+            } else {
+                outputDiv.innerHTML = `Command not found: ${command}`;
+            }
+        }
     </script>
 </body>
 </html>
