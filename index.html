@@ -1,72 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rinkeby Terminal</title>
-    <link rel="icon" href="rinkeby.png" type="image/icon type">
-    <style>
-        body {
-            background-color: #000;
-            color: #00FF00;
-            font-family: 'Courier New', monospace;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            padding: 0;
-        }
-        #cli-container {
-            width: 80%;
-            max-width: 900px;
-            text-align: left;
-        }
-        pre {
-            font-size: 18px;
-            line-height: 1.5;
-            white-space: pre-wrap;
-        }
-        #command-line {
-            display: flex;
-            align-items: center;
-            margin-top: 20px;
-            position: relative;
-        }
-        input {
-            background: transparent;
-            border: none;
-            color: #00FF00;
-            font-size: 16px;
-            width: 100%;
-            padding: 5px;
-            margin-left: 10px;
-            caret-color: transparent; /* Hide default caret */
-            position: relative;
-            z-index: 1;
-        }
-        input:focus {
-            outline: none;
-        }
-        #block-cursor {
-            position: absolute;
-            background-color: #00FF00;
-            width: 10px; /* Block width */
-            height: 20px; /* Block height */
-            top: 5px;
-            left: 0;
-            visibility: hidden;
-            z-index: 2;
-        }
-        #output {
-            margin-top: 10px;
-            color: #00FF00;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rinkeby Terminal</title>
+  <link rel="icon" href="rinkeby.png" type="image/icon type"/>
+  <style>
+    body {
+      background-color: #000;
+      color: #00FF00;
+      font-family: 'Courier New', monospace;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+    }
+
+    #cli-container {
+      width: 80%;
+      max-width: 900px;
+      text-align: left;
+      position: relative;
+    }
+
+    pre {
+      font-size: 18px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    #command-line {
+      display: flex;
+      align-items: center;
+      margin-top: 20px;
+      position: relative;
+    }
+
+    #input-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    input {
+      background: transparent;
+      border: none;
+      color: #00FF00;
+      font-size: 16px;
+      font-family: 'Courier New', monospace;
+      caret-color: transparent;
+      z-index: 1;
+      position: relative;
+    }
+
+    input:focus {
+      outline: none;
+    }
+
+    #block-cursor {
+      position: absolute;
+      background-color: #00FF00;
+      width: 10px;
+      height: 20px;
+      top: 0;
+      left: 0;
+      animation: blink 1s steps(1) infinite;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    @keyframes blink {
+      0%, 50% {
+        opacity: 1;
+      }
+      50.1%, 100% {
+        opacity: 0;
+      }
+    }
+
+    #mirror-text {
+      visibility: hidden;
+      white-space: pre;
+      font-family: 'Courier New', monospace;
+      font-size: 16px;
+      display: inline-block;
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+
+    #output {
+      margin-top: 10px;
+      color: #00FF00;
+    }
+  </style>
 </head>
 <body>
-    <div id="cli-container">
-        <pre id="ascii-art">
+  <div id="cli-container">
+    <pre id="ascii-art">
 **************************************************
 *                                                *
 *                  (511) 364-0721                *
@@ -77,47 +109,71 @@
 **************************************************
 (C) Copyright 2022-2023, Stargraph Computer Systems
 System:      Rinkeby Terminal
-Location:    Loading...
+Location:    <span id="location">Loading...</span>
 Rinkeby Terminal Version 1.0
-        </pre>
-        <div id="command-line">
-            <span>$ </span><input type="text" id="command-input" autofocus placeholder="Type a command..." />
-            <div id="block-cursor"></div> <!-- Block cursor element -->
-        </div>
-        <div id="output"></div>
+    </pre>
+
+    <div id="command-line">
+      <span>$ </span>
+      <div id="input-wrapper">
+        <input id="command-input" type="text" autofocus />
+        <div id="block-cursor"></div>
+        <span id="mirror-text"></span>
+      </div>
     </div>
 
-    <script>
-        // Fetch user's IP location using ipinfo.io
-        fetch('https://ipinfo.io/json?token=2a099d22248b97')
-            .then(response => response.json())
-            .then(data => {
-                const location = data.city + ", " + data.region + ", " + data.country;
-                document.querySelector('pre').textContent = document.querySelector('pre').textContent.replace('Location:    Loading...', `Location:    ${location}`);
-            })
-            .catch(error => console.error('Error fetching location:', error));
+    <div id="output"></div>
+  </div>
 
-        const commandInput = document.getElementById('command-input');
-        const blockCursor = document.getElementById('block-cursor');
-        
-        // Show the block cursor initially
-        blockCursor.style.visibility = 'visible';
+  <script>
+    const input = document.getElementById('command-input');
+    const mirror = document.getElementById('mirror-text');
+    const cursor = document.getElementById('block-cursor');
+    const wrapper = document.getElementById('input-wrapper');
 
-        // Set the block cursor position to the end of the input text
-        commandInput.addEventListener('input', function() {
-            const cursorPos = commandInput.selectionStart;
-            const textBeforeCursor = commandInput.value.substring(0, cursorPos);
-            const cursorWidth = getTextWidth(textBeforeCursor, commandInput);
-            blockCursor.style.left = cursorWidth + 'px';
-        });
+    function updateCursorPosition() {
+      mirror.textContent = input.value.substring(0, input.selectionStart);
+      const rect = mirror.getBoundingClientRect();
+      const wrapperRect = wrapper.getBoundingClientRect();
+      const offsetX = rect.width;
+      cursor.style.left = `${offsetX}px`;
+    }
 
-        // Function to calculate the width of the text before the cursor
-        function getTextWidth(text, inputElement) {
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            context.font = getComputedStyle(inputElement).font;
-            return context.measureText(text).width;
+    input.addEventListener('input', updateCursorPosition);
+    input.addEventListener('click', updateCursorPosition);
+    input.addEventListener('keydown', updateCursorPosition);
+    input.addEventListener('keyup', updateCursorPosition);
+
+    // Set initial cursor
+    updateCursorPosition();
+
+    // Fetch location
+    fetch('https://ipinfo.io?token=2a099d22248b97')
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('location').textContent = `${data.city}, ${data.region}, ${data.country}`;
+      })
+      .catch(() => {
+        document.getElementById('location').textContent = 'Unknown';
+      });
+
+    // Command handler
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        const command = input.value.trim().toLowerCase();
+        const output = document.getElementById('output');
+
+        if (command === '/radio') {
+          window.location.href = '/radio';
+        } else {
+          output.textContent = `Command not found: ${command}`;
         }
-    </script>
+
+        input.value = '';
+        mirror.textContent = '';
+        updateCursorPosition();
+      }
+    });
+  </script>
 </body>
 </html>
