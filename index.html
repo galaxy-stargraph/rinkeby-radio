@@ -40,10 +40,22 @@
             width: 100%;
             padding: 5px;
             margin-left: 10px;
-            caret-color: #00FF00; /* Blinking cursor color */
+            caret-color: transparent; /* Hide the default caret */
+            position: relative;
+            z-index: 1;
         }
         input:focus {
             outline: none;
+        }
+        input:focus::after {
+            content: '';
+            position: absolute;
+            background-color: #00FF00;
+            width: 10px; /* Set the width of the block */
+            height: 20px; /* Set the height of the block */
+            left: 0;
+            top: 5px; /* Adjust if necessary */
+            z-index: 2;
         }
         #output {
             margin-top: 10px;
@@ -64,7 +76,7 @@
 **************************************************
 (C) Copyright 2022-2023, Stargraph Computer Systems
 System:      Rinkeby Terminal
-Location:    <span id="location">Loading location...</span>
+Location:    [User Location Here] 
 Rinkeby Terminal Version 1.0
         </pre>
         <div id="command-line">
@@ -72,49 +84,35 @@ Rinkeby Terminal Version 1.0
         </div>
         <div id="output"></div>
     </div>
-
+    
     <script>
-        // Function to fetch user's location based on IP address
-        async function fetchLocation() {
-            try {
-                const response = await fetch('https://ipinfo.io?token=YOUR_API_KEY'); // Get location data
-                const data = await response.json();
-                document.getElementById('location').innerText = data.city + ', ' + data.region + ', ' + data.country;
-            } catch (error) {
-                document.getElementById('location').innerText = 'Unable to fetch location';
-            }
-        }
-
-        // Function to handle user input and execute commands
-        function handleCommand(command) {
-            const output = document.getElementById('output');
-            output.innerHTML = '';  // Clear previous output
-
-            switch (command.trim().toLowerCase()) {
-                case '/radio':
-                    window.location.href = '/radio';  // Redirect to radio page
-                    break;
-                case '/home':
-                    window.location.href = '/';  // Redirect to homepage
-                    break;
-                // Add more commands here as needed
-                default:
-                    output.innerHTML = 'Command not found. Type /help for a list of commands.';
-                    break;
-            }
-        }
-
-        // Event listener for when user presses 'Enter'
-        document.getElementById('command-input').addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                const command = event.target.value;
-                handleCommand(command);
-                event.target.value = '';  // Clear input after command is entered
-            }
+        // Fetch the user's location from IP API
+        fetch('https://ipinfo.io/json?token=YOUR_TOKEN_HERE') // Replace with your token if necessary
+        .then(response => response.json())
+        .then(data => {
+            const location = data.city + ", " + data.region + ", " + data.country;
+            document.querySelector("#ascii-art").innerHTML = document.querySelector("#ascii-art").innerHTML.replace('[User Location Here]', location);
         });
 
-        // Fetch the user's location on page load
-        fetchLocation();
+        // Handle command input and redirection
+        const inputField = document.querySelector("#command-input");
+        const outputDiv = document.querySelector("#output");
+        
+        inputField.addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                const command = inputField.value.trim().toLowerCase();
+
+                if (command === "/radio") {
+                    window.location.href = "/radio";
+                } else if (command === "/about") {
+                    window.location.href = "/about";
+                } else {
+                    outputDiv.innerHTML = `Command not recognized: ${command}`;
+                }
+
+                inputField.value = ""; // Clear the input field
+            }
+        });
     </script>
 </body>
 </html>
